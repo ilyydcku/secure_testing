@@ -23,19 +23,37 @@
 py -3.13 -m venv .venv
 ```
 
-Активировать:
+Установить зависимости без активации PowerShell-скрипта виртуального окружения:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
+& ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
 ```
 
-Установить зависимости:
+### PostgreSQL
+
+Для первой локальной настройки подключиться к PostgreSQL 18:
 
 ```powershell
-python -m pip install -r requirements.txt
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h 127.0.0.1 -p 5432 -d postgres
 ```
 
-Создать локальный `.env` на основе `.env.example` и задать собственный `DJANGO_SECRET_KEY`.
+Создать отдельную роль и базу приложения:
+
+```sql
+CREATE ROLE secure_testing WITH LOGIN;
+\password secure_testing
+CREATE DATABASE secure_testing OWNER secure_testing;
+\q
+```
+
+Создать локальный `.env` на основе `.env.example`:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+В `.env` задать реальные локальные значения `DJANGO_SECRET_KEY` и `POSTGRES_PASSWORD`. Остальные PostgreSQL-параметры по умолчанию соответствуют локальной конфигурации проекта.
 
 Перед запуском загрузить переменные окружения из `.env`:
 
@@ -47,18 +65,41 @@ Get-Content .env | ForEach-Object {
 }
 ```
 
+Применить миграции:
+
+```powershell
+& ".\.venv\Scripts\python.exe" manage.py migrate
+```
+
+Проверить Django:
+
+```powershell
+& ".\.venv\Scripts\python.exe" manage.py check
+```
+
+При необходимости проверить состояние миграций:
+
+```powershell
+& ".\.venv\Scripts\python.exe" manage.py showmigrations
+```
+
 ## Конфигурации
 
 - local development: `DJANGO_DEBUG=True`
 - protected: `DJANGO_DEBUG=False`
 
-В обеих конфигурациях `DJANGO_SECRET_KEY` и `DJANGO_ALLOWED_HOSTS` задаются через environment variables.
+Через environment variables задаются:
 
-Проверка Django:
+- `DJANGO_SECRET_KEY`
+- `DJANGO_DEBUG`
+- `DJANGO_ALLOWED_HOSTS`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
 
-```powershell
-python manage.py check
-```
+Локальный `.env` исключен из Git.
 
 ## Структура Django apps
 
@@ -66,6 +107,6 @@ python manage.py check
 - `assessments` - тесты, вопросы, попытки, ответы и результаты
 - `auditlog` - журналируемые события
 - `config` - конфигурация Django-проекта
+- `tests` - общая структура автоматизированных тестов
 
-Модели и миграции создаются начиная с этапа 11.
-
+На этапе 11 реализованы custom `User(AbstractUser)`, все 9 согласованных бизнес-моделей, подключение PostgreSQL 18 и первые миграции `0001_initial`.
