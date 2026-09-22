@@ -37,7 +37,22 @@ python -m pip install -r requirements.txt
 
 Создать локальный `.env` на основе `.env.example` и задать собственный `DJANGO_SECRET_KEY`.
 
-Перед запуском загрузить переменные окружения из `.env`.
+Перед запуском загрузить переменные окружения из `.env`:
+
+```powershell
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^#][^=]*)=(.*)$') {
+        Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
+    }
+}
+```
+
+## Конфигурации
+
+- local development: `DJANGO_DEBUG=True`
+- protected: `DJANGO_DEBUG=False`
+
+В обеих конфигурациях `DJANGO_SECRET_KEY` и `DJANGO_ALLOWED_HOSTS` задаются через environment variables.
 
 Проверка Django:
 
