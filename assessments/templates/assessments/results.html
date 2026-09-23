@@ -1,0 +1,2 @@
+{% extends 'assessments/base.html' %}
+{% block content %}<section class="card"><h2>{{ test.title }}</h2><div class="table-wrap"><table><thead><tr><th>ID результата</th><th>ID студента</th><th>Баллы</th><th>Правильных ответов, %</th></tr></thead><tbody>{% for result in results %}<tr><td>{{ result.id }}</td><td>{{ result.student_id }}</td><td>{{ result.score_points }}</td><td>{{ result.correct_percentage }}</td></tr>{% empty %}<tr><td colspan="4" class="empty">Завершенных результатов пока нет</td></tr>{% endfor %}</tbody></table></div></section>{% endblock %}

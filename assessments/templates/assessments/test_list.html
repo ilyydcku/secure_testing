@@ -1,0 +1,4 @@
+{% extends 'assessments/base.html' %}
+{% block subtitle %}<p>Создавайте тесты, назначайте студентам и просматривайте результаты</p>{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'teacher:test-create' %}">Создать тест</a>{% endblock %}
+{% block content %}<section class="card list-card"><h2>Тесты преподавателя</h2><div class="table-wrap"><table><thead><tr><th>Название</th><th>Статус</th><th>Попыток</th><th>Действие</th></tr></thead><tbody>{% for test in tests %}<tr><td>{{ test.title }}</td><td>{% include 'assessments/status.html' %}</td><td>{{ test.max_attempts }}</td><td><a href="{% url 'teacher:test-detail' test.id %}">Открыть →</a></td></tr>{% empty %}<tr><td colspan="4" class="empty">Тестов пока нет. Создайте первый черновик.</td></tr>{% endfor %}</tbody></table></div><p class="list-note">Отображаются только ваши тесты.</p></section>{% endblock %}

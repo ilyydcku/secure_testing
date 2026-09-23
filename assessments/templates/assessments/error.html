@@ -1,0 +1,2 @@
+{% extends 'assessments/base.html' %}
+{% block content %}<section class="card error-page"><span class="badge danger">{{ code }}</span><h2>{{ title }}</h2><p>{% if code == 404 %}Объект отсутствует или недоступен.{% elif code == 403 %}Недостаточно полномочий или сессия недействительна.{% elif code == 409 %}Обновите страницу и проверьте состояние объекта.{% else %}Исправьте данные и повторите запрос.{% endif %}</p><div class="actions"><a class="btn secondary" href="{% url 'login' %}">На главную</a></div></section>{% endblock %}

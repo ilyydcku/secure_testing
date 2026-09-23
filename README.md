@@ -248,3 +248,14 @@ DRF 3.18.1; этапы 13-14 прошли на временной SQLite in-memo
 & ".\.venv\Scripts\python.exe" manage.py check
 & ".\.venv\Scripts\python.exe" manage.py makemigrations --check --dry-run
 ```
+
+## Stage 16: teacher functionality (pending PostgreSQL verification)
+
+The `stage16/teacher` implementation adds the teacher API and server-rendered
+Django interface based on the approved UI prototype. Open `/login/` with an
+existing TEACHER account, then `/teacher/tests/`. The functional and live Django
+browser checks passed in the assistant's SQLite test environment. Full local
+PostgreSQL regression is still required before closing stage 16.
+
+Scope, transaction rules, actual results and Windows verification commands:
+[docs/STAGE_16.md](docs/STAGE_16.md). Stages 17-18 are not implemented by this change.
