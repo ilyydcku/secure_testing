@@ -2,6 +2,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import IntegrityError
 
 from accounts.models import User
 from accounts.services import (
@@ -33,6 +34,7 @@ def test_create_user_hashes_password_and_sets_expected_fields():
     assert user.is_active is True
     assert user.check_password(VALID_PASSWORD)
     assert user.password != VALID_PASSWORD
+    assert user.password.startswith("pbkdf2_sha256$")
 
 
 def test_create_user_rejects_invalid_role():
@@ -250,3 +252,173 @@ def test_bootstrap_admin_rejects_password_mismatch(monkeypatch):
         call_command("bootstrap_admin", username="mismatch-admin")
 
     assert not User.objects.filter(username="mismatch-admin").exists()
+
+
+@pytest.mark.parametrize("username", ["", "bad username", "x" * 151])
+def test_create_user_rejects_invalid_username_without_saving(username):
+    with pytest.raises(ValidationError):
+        create_user(
+            username=username,
+            password=VALID_PASSWORD,
+            role="STUDENT",
+        )
+
+    assert not User.objects.filter(username=username).exists()
+
+
+@pytest.mark.parametrize(
+    ("username", "password"),
+    [
+        ("short-pw-user", "Az7!"),
+        ("numeric-pw-user", "829173864520"),
+        ("common-pw-user", "password"),
+        ("thisismyveryuniquename", "thisismyveryuniquename"),
+    ],
+)
+def test_each_standard_password_validator_rejects_invalid_password(
+    username, password
+):
+    with pytest.raises(ValidationError):
+        create_user(
+            username=username,
+            password=password,
+            role="STUDENT",
+        )
+
+    assert not User.objects.filter(username=username).exists()
+
+
+@pytest.mark.parametrize("password", [None, ""])
+def test_create_user_requires_nonempty_password(password):
+    with pytest.raises(ValidationError):
+        create_user(
+            username="missing-password-user",
+            password=password,
+            role="STUDENT",
+        )
+
+    assert not User.objects.filter(username="missing-password-user").exists()
+
+
+def test_non_username_integrity_error_is_not_masked(monkeypatch):
+    def unrelated_integrity_error(_user):
+        raise IntegrityError("A different database constraint failed.")
+
+    monkeypatch.setattr(User, "save", unrelated_integrity_error)
+
+    with pytest.raises(
+        IntegrityError, match="A different database constraint failed"
+    ):
+        create_user(
+            username="unrelated-integrity-user",
+            password=VALID_PASSWORD,
+            role="STUDENT",
+        )
+
+
+def test_teacher_with_mixed_test_statuses_cannot_change_role():
+    admin = create_user(
+        username="mixed-tests-admin",
+        password=VALID_PASSWORD,
+        role="ADMIN",
+    )
+    teacher = create_user(
+        username="mixed-tests-teacher",
+        password=VALID_PASSWORD,
+        role="TEACHER",
+    )
+    for status in ("DRAFT", "ACTIVE", "CLOSED"):
+        AssessmentTest.objects.create(
+            owner=teacher, title=status, status=status, max_attempts=1,
+        )
+
+    with pytest.raises(ActiveTeacherRoleChangeError):
+        change_user_role(
+            target_user_id=teacher.pk,
+            new_role="STUDENT",
+            acting_user_id=admin.pk,
+        )
+
+    teacher.refresh_from_db()
+    assert teacher.role == "TEACHER"
+
+
+def test_role_change_to_same_role_is_idempotent():
+    admin = create_user(
+        username="same-role-admin",
+        password=VALID_PASSWORD,
+        role="ADMIN",
+    )
+    teacher = create_user(
+        username="same-role-teacher",
+        password=VALID_PASSWORD,
+        role="TEACHER",
+    )
+    AssessmentTest.objects.create(
+        owner=teacher,
+        title="Active",
+        status="ACTIVE",
+        max_attempts=1,
+    )
+
+    updated = change_user_role(
+        target_user_id=teacher.pk,
+        new_role="TEACHER",
+        acting_user_id=admin.pk,
+    )
+    assert updated.role == "TEACHER"
+
+
+def test_set_user_active_is_idempotent():
+    admin = create_user(
+        username="idempotent-admin",
+        password=VALID_PASSWORD,
+        role="ADMIN",
+    )
+    student = create_user(
+        username="idempotent-student",
+        password=VALID_PASSWORD,
+        role="STUDENT",
+    )
+
+    set_user_active(
+        target_user_id=student.pk,
+        is_active=True,
+        acting_user_id=admin.pk,
+    )
+    set_user_active(
+        target_user_id=student.pk,
+        is_active=False,
+        acting_user_id=admin.pk,
+    )
+    set_user_active(
+        target_user_id=student.pk,
+        is_active=False,
+        acting_user_id=admin.pk,
+    )
+    student.refresh_from_db()
+    assert student.is_active is False
+
+
+def test_bootstrap_admin_rejects_weak_password(monkeypatch):
+    monkeypatch.setattr(
+        "accounts.management.commands.bootstrap_admin.getpass",
+        lambda _prompt: "123",
+    )
+
+    with pytest.raises(CommandError):
+        call_command("bootstrap_admin", username="weak-bootstrap-admin")
+
+    assert not User.objects.filter(role="ADMIN").exists()
+
+
+def test_bootstrap_admin_rejects_invalid_username(monkeypatch):
+    monkeypatch.setattr(
+        "accounts.management.commands.bootstrap_admin.getpass",
+        lambda _prompt: VALID_PASSWORD,
+    )
+
+    with pytest.raises(CommandError):
+        call_command("bootstrap_admin", username="invalid bootstrap username")
+
+    assert not User.objects.filter(role="ADMIN").exists()
