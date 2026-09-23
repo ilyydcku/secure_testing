@@ -18,6 +18,12 @@ def has_role(user, role):
     )
 
 
+def check_role(user, role):
+    """Require a business role before querying any protected objects."""
+    if not has_role(user, role):
+        raise PermissionDenied
+
+
 class HasBusinessRole(BasePermission):
     required_role = None
 

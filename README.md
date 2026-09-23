@@ -141,6 +141,64 @@ HttpOnly session cookie. `SESSION_COOKIE_AGE=1800` (30 минут);
 & ".\.venv\Scripts\python.exe" manage.py makemigrations --check --dry-run
 ```
 
+## Этап 15: объектная авторизация
+
+Добавлены общие серверные функции доступа, без новых рабочих URL:
+
+- `accounts.permissions.check_role`: проверка роли до запроса объектов;
+- `accounts/access.py`: ADMIN-доступ к User и отдельный список кандидатов
+  STUDENT для TEACHER (только `id`, `username`, активные STUDENT);
+- `assessments/access.py`: области Test/Question/AnswerOption/TestAssignment/
+  Result для TEACHER и назначенных Test/собственных Attempt/StudentAnswer/Result
+  для STUDENT;
+- `auditlog/access.py`: область чтения AuditEvent только для ADMIN.
+
+Функции получают актуального `request.user`; технические флаги не дают прав.
+Списки фильтруются по владельцу или назначению. Вложенный список сначала
+проверяет доступ к родителю: чужой или отсутствующий родитель дает одинаковый
+404, а не пустой список. STUDENT не видит DRAFT; Question и StudentAnswer
+доступны через собственную незавершенную Attempt, в том числе после закрытия
+Test. `student_answer_selection` проверяет принадлежность Question к Test
+попытки и AnswerOption к Question, но не сохраняет ответ.
+
+Контракт общего слоя:
+
+- `PermissionDenied`: 403, неподходящая роль/неактивный/анонимный пользователь;
+- `Http404("Not found.")`: 404, чужой или отсутствующий объект;
+- `ValidationError("Invalid related object.")`: нейтральный 400 для неверных
+  связанных ID или недоступного кандидата назначения;
+- `LifecycleConflict`: 409 для собственной завершенной Attempt при запросе
+  ее содержимого/проверке выбора либо незавершенной Attempt при запросе Result.
+
+В будущих Django/DRF endpoints нужно явно отображать `ValidationError` и
+`LifecycleConflict` в согласованные 400/409. 403/404 поддерживаются стандартной
+обработкой Django/DRF. Проверочные адаптеры сейчас существуют только в тестах.
+
+QuerySet и модели этого слоя являются внутренними данными, не API-ответами.
+Нельзя сериализовать их целиком: whitelist serializers/контексты шаблонов
+подключаются на этапах 16-18. В частности, AnswerOption содержит `is_correct`,
+а User содержит hash пароля; право получить объект внутри backend не дает
+права выдавать все его поля клиенту. Операции записи должны повторно проверить
+доступ и lifecycle внутри транзакции после получения требуемых блокировок.
+Этап 15 не реализует запись ответов, старт/завершение попыток, назначение тестов,
+аннулирование сессий или журналирование и не добавляет новые endpoints.
+
+Добавлены 191 сценарий в `tests/test_object_access_stage15.py`: роли для всех
+точек входа, цепочки владельцев, фильтрация списков, подмена ID, нейтральные
+ошибки, состояния Attempt, текущие роли и реальные session-запросы Django/DRF.
+В окружении ассистента на Python 3.12.14, Django 5.2.17, DRF 3.18.1 с временной
+SQLite in-memory: `191 passed in 5.63s`; совместно этапы 13-15:
+`254 passed in 23.78s`. Настройки проекта и зависимости не изменены.
+Полный прогон всех 286 сценариев на Python 3.13/PostgreSQL 18 пока не выполнен;
+этап 15 ожидает этой локальной проверки, включая регресс этапа 12:
+
+```powershell
+git pull --ff-only origin master
+python -m pytest -v --tb=short
+python manage.py check
+python manage.py makemigrations --check --dry-run
+```
+
 Отдельно проверить protected-конфигурацию в окружении с соответствующими
 значениями `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` и `DJANGO_HTTPS`:
 
