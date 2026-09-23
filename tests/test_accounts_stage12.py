@@ -13,7 +13,7 @@ from accounts.services import (
     create_user,
     set_user_active,
 )
-from assessments.models import Test
+from assessments.models import Test as AssessmentTest
 
 
 pytestmark = pytest.mark.django_db
@@ -79,7 +79,7 @@ def test_teacher_with_active_test_cannot_change_role():
         password=VALID_PASSWORD,
         role="TEACHER",
     )
-    Test.objects.create(
+    AssessmentTest.objects.create(
         owner=teacher,
         title="Active test",
         status="ACTIVE",
@@ -109,7 +109,7 @@ def test_teacher_without_active_test_can_change_role(test_status):
         password=VALID_PASSWORD,
         role="TEACHER",
     )
-    Test.objects.create(
+    AssessmentTest.objects.create(
         owner=teacher,
         title=f"{test_status} test",
         status=test_status,
