@@ -110,3 +110,46 @@ Get-Content .env | ForEach-Object {
 - `tests` - общая структура автоматизированных тестов
 
 На этапе 11 реализованы custom `User(AbstractUser)`, все 9 согласованных бизнес-моделей, подключение PostgreSQL 18 и первые миграции `0001_initial`.
+
+
+## Этап 13: проверка session-based аутентификации
+
+Маршруты: `GET /api/auth/csrf/`, `POST /api/auth/login/`,
+`GET /api/auth/me/`, `POST /api/auth/logout/`.
+
+Перед входом клиент получает `csrfToken` через `GET /api/auth/csrf/` и
+передает его в заголовке `X-CSRFToken` при `POST /api/auth/login/`.
+После успешного входа Django ротирует CSRF token. Для последующих
+небезопасных запросов следует использовать обновленный CSRF token
+(при необходимости повторно вызвать `GET /api/auth/csrf/`).
+
+Только стандартная `SessionAuthentication` используется для защищенных
+DRF endpoints. Данные сессии хранятся в PostgreSQL, а клиент получает
+HttpOnly session cookie. `SESSION_COOKIE_AGE=1800` (30 минут);
+чтение сессии само по себе срок действия не продлевает.
+
+Для локального HTTP использовать `DJANGO_HTTPS=False`. Для реального
+защищенного HTTPS-окружения задать `DJANGO_DEBUG=False`, явный
+`DJANGO_ALLOWED_HOSTS` и `DJANGO_HTTPS=True` (оба cookie Secure).
+Один лишь флаг `DJANGO_HTTPS=True` не настраивает TLS или прокси.
+
+После `git pull` выполнить в настроенном PostgreSQL-окружении:
+
+```powershell
+& ".\.venv\Scripts\python.exe" -m pytest -q
+& ".\.venv\Scripts\python.exe" manage.py check
+& ".\.venv\Scripts\python.exe" manage.py makemigrations --check --dry-run
+```
+
+Отдельно проверить protected-конфигурацию в окружении с соответствующими
+значениями `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` и `DJANGO_HTTPS`:
+
+```powershell
+& ".\.venv\Scripts\python.exe" manage.py check --deploy
+```
+
+`check --deploy` может дополнительно предупреждать о HSTS и HTTPS
+redirect, если они еще не настроены для реального HTTPS-стенда.
+Не включать перенаправление или HSTS фиктивно на локальном HTTP.
+Параметры django-axes и журналирование login/logout остаются задачами
+соответственно этапов 21 и 20.

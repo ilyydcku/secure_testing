@@ -134,3 +134,28 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Stage 13: server-side Django session authentication.
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_AGE = 30 * 60
+# Expiry is measured from the last modification, not every read/request.
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# Local HTTP stays usable by default. Enable both Secure flags for a real
+# protected HTTPS deployment with DJANGO_HTTPS=True.
+_HTTPS_ENABLED = os.environ.get("DJANGO_HTTPS", "False").lower() == "true"
+SESSION_COOKIE_SECURE = _HTTPS_ENABLED
+CSRF_COOKIE_SECURE = _HTTPS_ENABLED
