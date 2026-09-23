@@ -1,0 +1,12 @@
+{% load static %}<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title|default:"Secure Testing" }} · Secure Testing</title><link rel="stylesheet" href="{% static 'assessments/styles.css' %}"><script defer src="{% static 'assessments/forms.js' %}"></script></head>
+<body><a href="#main" class="skip">К содержимому</a>
+{% block layout %}
+<header class="header"><a class="brand" href="{% url 'login' %}"><span class="brand-mark">S</span><span><strong>Secure Testing</strong><small>Университетская система тестирования</small></span></a><div class="account">{% if user.is_authenticated %}<b>{{ user.username }}</b><form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="plain" type="submit">Выйти</button></form>{% else %}<a href="{% url 'login' %}">Войти</a>{% endif %}</div></header>
+{% if user.role == 'TEACHER' and user.is_active %}<nav class="sidebar" aria-label="Основная навигация"><a class="active" href="{% url 'teacher:test-list' %}">Мои тесты</a></nav>{% endif %}
+<main id="main" class="main {% if user.role != 'TEACHER' %}student{% endif %}" tabindex="-1">
+{% if test %}<div class="breadcrumb"><a href="{% url 'teacher:test-list' %}">Мои тесты</a><span>/</span><a href="{% url 'teacher:test-detail' test.id %}">{{ test.title }}</a></div>{% endif %}
+<div class="page-head"><div><h1>{{ title }}</h1>{% block subtitle %}{% endblock %}</div>{% block actions %}{% endblock %}</div>
+{% for message in messages %}<div class="alert success notice" role="status">{{ message }}</div>{% endfor %}
+{% block content %}{% endblock %}</main>
+{% endblock %}</body></html>
