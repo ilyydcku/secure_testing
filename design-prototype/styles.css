@@ -51,3 +51,31 @@ textarea[aria-invalid=true]:focus-visible {
     border: 0;
     box-shadow: none;
 }
+
+/* Balanced create/edit test screen: one centered form and integrated guidance. */
+.main:has(.create-layout) > .page-head {
+    width: 100%;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.create-layout {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+.create-help {
+    margin-top: 2px;
+    padding: 16px 18px;
+    border-radius: 8px;
+    background: var(--slate-soft);
+}
+.create-help strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--navy);
+}
+.create-help p {
+    font-size: 13px;
+    color: var(--slate);
+}
