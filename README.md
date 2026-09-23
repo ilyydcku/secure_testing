@@ -153,3 +153,40 @@ redirect, если они еще не настроены для реальног
 Не включать перенаправление или HSTS фиктивно на локальном HTTP.
 Параметры django-axes и журналирование login/logout остаются задачами
 соответственно этапов 21 и 20.
+
+## Этап 14: серверная проверка бизнес-ролей
+
+`accounts/permissions.py` содержит общую проверку `has_role(user, role)`,
+DRF permissions `IsStudent`, `IsTeacher`, `IsAdmin` и Django-декоратор
+`require_role("STUDENT" | "TEACHER" | "ADMIN")`.
+Проверяются аутентификация, `is_active` и текущая `User.role`.
+`is_staff` и `is_superuser` не дают дополнительных бизнес-прав;
+ADMIN не наследует STUDENT или TEACHER. Отказ возвращает HTTP 403.
+
+DRF permissions используются со стандартной `SessionAuthentication`.
+Django-декоратор используется при сохраненном `CsrfViewMiddleware`.
+Эти проверки не заменяют CSRF, объектную авторизацию или lifecycle.
+Рабочие endpoints следующих этапов еще не добавлены; `/api/auth/me/`
+остается доступным любой активной аутентифицированной бизнес-роли.
+
+`tests/test_rbac_stage14.py` содержит 40 сценариев: матрица трех ролей
+для Django и DRF, анонимные запросы, технические флаги, смена роли
+в существующей сессии, блокировка, CSRF и безопасный отказ при
+неизвестной роли. Проверочные маршруты существуют только в тестовом URLconf.
+
+Проверки в окружении разработки ассистента: Python 3.12, Django 5.2.17,
+DRF 3.18.1; этапы 13-14 прошли на временной SQLite in-memory базе:
+`63 passed in 26.07s`. `manage.py check` без замечаний; проверка
+`makemigrations --check --dry-run` с временной SQLite-конфигурацией:
+`No changes detected`. Настройки PostgreSQL проекта не изменялись.
+Эти результаты не заменяют полный прогон на Python 3.13/PostgreSQL 18,
+включая конкурентные тесты этапа 12. До его успешного завершения
+этап 14 не объявляется окончательно проверенным.
+
+В локальном окружении с загруженными переменными `.env` выполнить:
+
+```powershell
+& ".\.venv\Scripts\python.exe" -m pytest -v --tb=short
+& ".\.venv\Scripts\python.exe" manage.py check
+& ".\.venv\Scripts\python.exe" manage.py makemigrations --check --dry-run
+```
