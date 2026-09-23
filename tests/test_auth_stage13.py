@@ -262,3 +262,11 @@ def test_https_environment_controls_secure_cookie_settings():
         check=True, capture_output=True, text=True, env=env,
     )
     assert json.loads(result.stdout) == [False, ["tests.example.invalid"], True, True]
+
+
+def test_me_uses_current_role_not_role_saved_at_login(user, csrf_client):
+    client, token = csrf_client
+    assert post_login(client, token).status_code == 200
+    user.role = "TEACHER"
+    user.save(update_fields=["role"])
+    assert client.get("/api/auth/me/").json()["role"] == "TEACHER"
