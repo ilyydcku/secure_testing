@@ -40,6 +40,17 @@ def _validate_role(role):
         )
 
 
+def _is_username_unique_violation(exc, User):
+    # PostgreSQL names the UNIQUE constraint for the AbstractUser username
+    # column <table>_username_key; do not mask unrelated IntegrityError cases.
+    cause = exc.__cause__
+    return (
+        getattr(cause, "sqlstate", None) == "23505"
+        and getattr(getattr(cause, "diag", None), "constraint_name", None)
+        == f"{User._meta.db_table}_username_key"
+    )
+
+
 @transaction.atomic
 def create_user(*, username, password, role):
     _validate_role(role)
@@ -56,15 +67,20 @@ def create_user(*, username, password, role):
     if User.objects.filter(username=user.username).exists():
         raise UsernameConflictError("A user with this username already exists.")
 
+    if not isinstance(password, str) or not password:
+        raise ValidationError({"password": ["A non-empty password is required."]})
+
     validate_password(password, user=user)
     user.set_password(password)
 
     try:
         user.save()
     except IntegrityError as exc:
-        raise UsernameConflictError(
-            "A user with this username already exists."
-        ) from exc
+        if _is_username_unique_violation(exc, User):
+            raise UsernameConflictError(
+                "A user with this username already exists."
+            ) from exc
+        raise
 
     return user
 
