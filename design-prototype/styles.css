@@ -14,3 +14,15 @@ dialog{border:1px solid var(--line);border-radius:12px;padding:32px;max-width:60
 .grid.draft > .card > .row > h3 {
     margin-bottom: 0;
 }
+
+/* Separate the draft question toolbar from the question list. */
+.grid.draft > .card > .row:first-child {
+    align-items: center;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.grid.draft > .card > .row:first-child + .question-row {
+    border-top: 0;
+    padding-top: 18px;
+}
