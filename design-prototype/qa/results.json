@@ -1,0 +1,177 @@
+{
+  "viewport": "1440x900",
+  "screens": [
+    {
+      "page": 1,
+      "width": 1440,
+      "font": true,
+      "h1": "UI Kit и состояния",
+      "overflow": []
+    },
+    {
+      "page": 2,
+      "width": 1440,
+      "font": true,
+      "h1": "Secure Testing",
+      "overflow": []
+    },
+    {
+      "page": 3,
+      "width": 1440,
+      "font": true,
+      "h1": "Мои тесты",
+      "overflow": []
+    },
+    {
+      "page": 4,
+      "width": 1440,
+      "font": true,
+      "h1": "Новый тест",
+      "overflow": []
+    },
+    {
+      "page": 5,
+      "width": 1440,
+      "font": true,
+      "h1": "Основы информационной безопасности",
+      "overflow": []
+    },
+    {
+      "page": 6,
+      "width": 1440,
+      "font": true,
+      "h1": "Редактирование вопроса",
+      "overflow": []
+    },
+    {
+      "page": 7,
+      "width": 1440,
+      "font": true,
+      "h1": "Назначения теста",
+      "overflow": []
+    },
+    {
+      "page": 8,
+      "width": 1440,
+      "font": true,
+      "h1": "Назначения теста",
+      "overflow": []
+    },
+    {
+      "page": 9,
+      "width": 1440,
+      "font": true,
+      "h1": "Проверка перед активацией",
+      "overflow": []
+    },
+    {
+      "page": 10,
+      "width": 1440,
+      "font": true,
+      "h1": "Компьютерные сети",
+      "overflow": []
+    },
+    {
+      "page": 11,
+      "width": 1440,
+      "font": true,
+      "h1": "Основы программирования",
+      "overflow": []
+    },
+    {
+      "page": 12,
+      "width": 1440,
+      "font": true,
+      "h1": "Результаты теста",
+      "overflow": []
+    },
+    {
+      "page": 13,
+      "width": 1440,
+      "font": true,
+      "h1": "Доступные тесты",
+      "overflow": []
+    },
+    {
+      "page": 14,
+      "width": 1440,
+      "font": true,
+      "h1": "Основы информационной безопасности",
+      "overflow": []
+    },
+    {
+      "page": 15,
+      "width": 1440,
+      "font": true,
+      "h1": "Прохождение теста",
+      "overflow": []
+    },
+    {
+      "page": 16,
+      "width": 1440,
+      "font": true,
+      "h1": "Подтверждение завершения",
+      "overflow": []
+    },
+    {
+      "page": 17,
+      "width": 1440,
+      "font": true,
+      "h1": "Результат попытки",
+      "overflow": []
+    },
+    {
+      "page": 18,
+      "width": 1440,
+      "font": true,
+      "h1": "Компьютерные сети",
+      "overflow": []
+    },
+    {
+      "page": 19,
+      "width": 1440,
+      "font": true,
+      "h1": "Пользователи",
+      "overflow": []
+    },
+    {
+      "page": 20,
+      "width": 1440,
+      "font": true,
+      "h1": "Новая учетная запись",
+      "overflow": []
+    },
+    {
+      "page": 21,
+      "width": 1440,
+      "font": true,
+      "h1": "Учетная запись student1",
+      "overflow": []
+    },
+    {
+      "page": 22,
+      "width": 1440,
+      "font": true,
+      "h1": "Журнал событий",
+      "overflow": []
+    },
+    {
+      "page": 23,
+      "width": 1440,
+      "font": true,
+      "h1": "Системные состояния",
+      "overflow": []
+    },
+    {
+      "page": 24,
+      "width": 1440,
+      "font": true,
+      "h1": "Изменение роли: конфликт",
+      "overflow": []
+    }
+  ],
+  "scenarios": "passed",
+  "consoleErrors": [],
+  "externalRequests": [],
+  "mobile": "390x844 passed"
+}
