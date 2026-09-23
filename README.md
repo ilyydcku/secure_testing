@@ -249,13 +249,35 @@ DRF 3.18.1; этапы 13-14 прошли на временной SQLite in-memo
 & ".\.venv\Scripts\python.exe" manage.py makemigrations --check --dry-run
 ```
 
-## Stage 16: teacher functionality (pending PostgreSQL verification)
+## Этап 16: функциональность преподавателя
 
-The `stage16/teacher` implementation adds the teacher API and server-rendered
-Django interface based on the approved UI prototype. Open `/login/` with an
-existing TEACHER account, then `/teacher/tests/`. The functional and live Django
-browser checks passed in the assistant's SQLite test environment. Full local
-PostgreSQL regression is still required before closing stage 16.
+Этап 16 завершен в своих границах. Реализованы TEACHER API и Django-интерфейс
+по согласованному макету. Вход: /login/, кабинет: /teacher/tests/.
 
-Scope, transaction rules, actual results and Windows verification commands:
-[docs/STAGE_16.md](docs/STAGE_16.md). Stages 17-18 are not implemented by this change.
+На коммите `fe16e458a41dbcfd41b0ab8a1d0adca30a64e1f4` пользователь выполнил
+полный локальный PostgreSQL-прогон: **420 passed, 1 skipped in 215.57s**.
+Django check без замечаний, новых миграций нет. Один пропуск соответствует
+отдельно включаемому браузерному тесту; этот тест ранее прошел у ассистента
+на настоящем Django live_server с временной SQLite.
+Ранние отметки ожидания проверок в разделах этапов 14-15 выше являются
+историческими; текущий полный прогон включает их тесты.
+
+Подробности и границы проверки: [docs/STAGE_16.md](docs/STAGE_16.md).
+Этапы 17-18 этим изменением не реализованы.
+
+Для локального запуска в PowerShell из папки проекта:
+
+```powershell
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^#][^=]*)=(.*)$') {
+        Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
+    }
+}
+& ".\.venv\Scripts\python.exe" manage.py runserver 127.0.0.1:8000
+```
+
+Открыть http://127.0.0.1:8000/login/ и войти под активным TEACHER.
+ADMIN не получает кабинет преподавателя. Демонстрационные пароли макета
+в реальном приложении не действуют. Если TEACHER еще нет, оператор может
+создать его существующим сервисом create_user через manage.py shell:
+сервис проверяет пароль стандартными Django validators и сохраняет его хеш.
